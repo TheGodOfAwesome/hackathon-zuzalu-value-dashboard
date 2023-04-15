@@ -6,7 +6,7 @@ import {
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 
-export default Dashboard = () => {
+const Dashboard = () => {
     const values = Object.entries(Value).map(value => value[1]);
 
     const [scores,setScores] = useState([0, 0, 0, 0]);
@@ -146,3 +146,5 @@ const getAttestations = async () => {
 const epochTimeToDate = (epochTime) => {
     return (new Date(epochTime));
 }
+
+export default Dashboard;
