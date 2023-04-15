@@ -6,7 +6,7 @@ import {
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 
-export const Dashboard = () => {
+export default Dashboard = () => {
     const values = Object.entries(Value).map(value => value[1]);
 
     const [scores,setScores] = useState([0, 0, 0, 0]);
