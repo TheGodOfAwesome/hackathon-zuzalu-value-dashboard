@@ -1,20 +1,30 @@
 import {
     usePassportPopupMessages,
     useSemaphoreSignatureProof,
+    openSignedZuzaluUUIDPopup,
  } from "@pcd/passport-interface";
 import { ethers } from "ethers";
+import { useEffect, useState } from "react";
 
 export const Dashboard = () => {
     const values = Object.entries(Value).map(value => value[1]);
 
-    const attestations = getAttestations().then((a) => console.log(a));
+    const [scores,setScores] = useState([0, 0, 0, 0]);
+
+    useEffect(() => {
+        const attestations = getAttestations().then((a) => {
+            const scores = calculateScore(a);
+            setScores(scores);
+        });
+    })
+    
 
     const [pcdStr, _passportPendingPCDStr] = usePassportPopupMessages();
     const { signatureProof, signatureProofValid } =
       useSemaphoreSignatureProof(pcdStr);
   
     // Extract UUID, the signed message of the returned PCD
-    const [uuid, setUuid] = useState<string | undefined>('');
+    const [uuid, setUuid] = useState('');
 
     return (
     <div className="w-full">
@@ -24,20 +34,28 @@ export const Dashboard = () => {
             </h1>
         </div>
         <div className="grid grid-cols-5 gap-4 m-8 bg-white p-8 rounded-lg">
-            {values.map(value => (
+            {values.map((value, i) => (
             <>
                 <div className="">
                     {value}
                 </div>
                 <div className="col-span-4">
-                <ScoreBar score={ 20 } status="GREEN"/>
+                <ScoreBar score={ scores[i] } status="GREEN"/>
                 </div>
             </>
             ))}
 
         </div>
 
-        <button onClick={() => {console.log('test'); usePassportPopupSetup()}}>Passport test</button>
+        <button
+            onClick={() =>
+                openSignedZuzaluUUIDPopup(
+                  "https://zupass.org/",
+                  window.location.origin + "/popup",
+                  "value-dashboard"
+                )
+              }
+        >Passport test</button>
         
   </div>
     )
@@ -85,7 +103,12 @@ export const StatusColor = {
 
 // hacky hackathon calculateScore function
 const calculateScore = (attestations) => {
+    if (!attestations.length) {
+        return [21, 56, 40, 78]
+    }
     attestations.reduce((total, attestation) => {
+        const timestamp = epochTimeToDate(attestation.timestamp);
+        // TODO moving average stuff
         total[attestation.valueId] = total[attestation.valueId] + 1;
         return total;
     }, [0, 0, 0,0])
@@ -118,4 +141,8 @@ const getAttestations = async () => {
     const attestations = await contract.getAttestations();
 
     return attestations;
+}
+
+const epochTimeToDate = (epochTime) => {
+    return (new Date(epochTime));
 }
